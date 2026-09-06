@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     """Centralised, validated configuration singleton."""
 
     # ------------------------------------------------------------------ app
-    app_name: str = "Enterprise AI Knowledge & Decision Platform"
+    app_name: str = "Groundwork"
     app_env: Literal["development", "staging", "production", "test"] = "development"
     debug: bool = False
     api_v1_prefix: str = "/api/v1"

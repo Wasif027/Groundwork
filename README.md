@@ -1,4 +1,6 @@
-# Enterprise AI Knowledge & Decision Platform
+# Groundwork
+
+*An enterprise knowledge & decision platform.*
 
 Sign in, upload the files a business actually runs on — **PDF, Word, Excel,
 PowerPoint** (Google Sheets/Slides: use *File → Download*) — then ask questions

@@ -1,9 +1,9 @@
 # =============================================================================
-# Enterprise AI Knowledge & Decision Platform — full stack
+# Groundwork — full stack
 # =============================================================================
-#   postgres        Postgres 16 + pgvector (documents, chunks, answers, actions)
+#   postgres        Postgres 16 + pgvector (documents, chunks, answers, suggestions)
 #   redis           answer cache + rate limiting
-#   backend         FastAPI — ingestion, hybrid RAG, controlled actions
+#   backend         FastAPI — ingestion, hybrid RAG, spreadsheet analytics
 #   frontend        Next.js analyst workspace
 #   otel-collector  OpenTelemetry traces/metrics (stdout in dev)
 #

@@ -56,8 +56,8 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=settings.version,
         description=(
-            "Enterprise AI Knowledge & Decision Platform — hybrid RAG with citations, "
-            "confidence, source passages and controlled actions."
+            "Groundwork — hybrid RAG over business documents: cited, confidence-scored "
+            "answers with source passages, spreadsheet analytics, and next-step suggestions."
         ),
         lifespan=lifespan,
     )

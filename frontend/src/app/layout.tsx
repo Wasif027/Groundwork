@@ -6,14 +6,15 @@ import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
 
 export const metadata: Metadata = {
-  title: "Knowledge & Decision Platform",
+  title: "Groundwork",
   description:
-    "Ask your enterprise knowledge base — grounded answers with citations, confidence, source passages and controlled actions.",
-  applicationName: "Knowledge & Decision Platform",
+    "Grounded RAG over your business documents — cited answers, spreadsheet analytics and an AI next-step decision log.",
+  applicationName: "Groundwork",
+  icons: { icon: "/favicon.svg" },
   openGraph: {
-    title: "Knowledge & Decision Platform",
+    title: "Groundwork",
     description:
-      "Hybrid retrieval over policies, contracts, runbooks and incident reports — every answer cited, scored and auditable.",
+      "Upload PDFs, Word docs, spreadsheets and decks — ask questions and get answers with citations, run calculations over your data, and track the next steps an answer implies.",
     type: "website",
   },
 };

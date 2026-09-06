@@ -1,4 +1,4 @@
-# Backend — Enterprise AI Knowledge & Decision Platform
+# Backend — Groundwork
 
 FastAPI service: account auth, per-user ingestion of business files
 (PDF / Word / Excel / PowerPoint), multi-chat conversations, hybrid RAG with
