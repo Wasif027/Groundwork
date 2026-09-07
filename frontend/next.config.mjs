@@ -5,7 +5,9 @@
 const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:8000";
 
 const nextConfig = {
-  output: "standalone",
+  // "standalone" is for the Docker image / self-hosting. On Vercel (VERCEL=1)
+  // leave it unset so Vercel's native Next.js adapter handles the build.
+  output: process.env.VERCEL ? undefined : "standalone",
   reactStrictMode: true,
   async rewrites() {
     return [
