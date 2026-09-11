@@ -9,6 +9,63 @@ from app.services.embeddings import embed_text, embed_texts
 from app.services.llm import ContextPassage, _coerce_step, _offline
 
 
+# -------------------------------------------------------------- BYOK crypto
+def test_encrypt_decrypt_round_trips():
+    from app.core.crypto import decrypt_secret, encrypt_secret
+
+    token = encrypt_secret("AQ.a-real-looking-gemini-key")
+    assert token != "AQ.a-real-looking-gemini-key"  # stored form is opaque
+    assert decrypt_secret(token) == "AQ.a-real-looking-gemini-key"
+
+
+def test_decrypt_secret_tolerates_garbage_and_none():
+    from app.core.crypto import decrypt_secret
+
+    assert decrypt_secret(None) is None
+    assert decrypt_secret("") is None
+    assert decrypt_secret("not-a-real-token") is None
+
+
+def test_user_llm_key_overrides_the_client_api_key(monkeypatch):
+    """deps.get_current_user sets the contextvar; llm._openai must prefer it
+    over the shared server key when constructing the OpenAI client."""
+    from app.core.request_context import set_user_llm_key
+    from app.services import llm as llm_mod
+
+    captured: dict = {}
+
+    class _FakeMessage:
+        content = '{"answer": "ok", "confidence": 0.5, "citations": [], "followUps": []}'
+
+    class _FakeChoice:
+        message = _FakeMessage()
+
+    class _FakeResponse:
+        choices = [_FakeChoice()]
+        usage = None
+
+    class _FakeCompletions:
+        def create(self, **kwargs):
+            return _FakeResponse()
+
+    class _FakeChat:
+        completions = _FakeCompletions()
+
+    class _FakeClient:
+        def __init__(self, **kwargs):
+            captured["api_key"] = kwargs.get("api_key")
+
+        chat = _FakeChat()
+
+    monkeypatch.setattr("openai.OpenAI", _FakeClient)
+    set_user_llm_key("the-users-own-key")
+    try:
+        llm_mod._openai("what is the refund window?", [], "system prompt", None)
+    finally:
+        set_user_llm_key(None)
+    assert captured["api_key"] == "the-users-own-key"
+
+
 # ---------------------------------------------------------------- chunking
 def test_chunking_respects_headings_and_overlap():
     text = (

@@ -8,11 +8,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.crypto import encrypt_secret
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.orm import User
-from app.models.schemas import AuthResponse, LoginRequest, RegisterRequest, UserRead
+from app.models.schemas import AuthResponse, LoginRequest, RegisterRequest, SetApiKeyRequest, UserRead
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -53,4 +54,15 @@ def login(body: LoginRequest, db: Session = Depends(get_db)) -> AuthResponse:
 
 @router.get("/me", response_model=UserRead)
 def me(user: User = Depends(get_current_user)) -> UserRead:
+    return UserRead.model_validate(user)
+
+
+@router.put("/api-key", response_model=UserRead)
+def set_api_key(
+    body: SetApiKeyRequest, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> UserRead:
+    key = (body.api_key or "").strip()
+    user.custom_llm_api_key_enc = encrypt_secret(key) if key else None
+    db.commit()
+    db.refresh(user)
     return UserRead.model_validate(user)

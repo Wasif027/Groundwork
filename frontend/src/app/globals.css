@@ -59,6 +59,19 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  font-size: calc(16px * var(--text-scale, 1));
+}
+
+/* Settings → Appearance. Unset (default) === 1, so "Default"/"Comfortable"
+ * need no rule of their own. */
+[data-font="sm"] {
+  --text-scale: 0.9375;
+}
+[data-font="lg"] {
+  --text-scale: 1.125;
+}
+[data-density="compact"] {
+  --space-scale: 0.75;
 }
 
 html,
@@ -71,7 +84,7 @@ body {
 body {
   background-color: rgb(var(--surface-base));
   color: rgb(var(--content-primary));
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "cv05", "cv08", "ss03";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

@@ -84,6 +84,23 @@ def test_auth_flow(app_client):
     assert app_client.post("/api/v1/auth/login", json={"username": "flowuser", "password": "wrong"}).status_code == 401
 
 
+def test_set_and_clear_own_api_key(auth):
+    client, headers, user = auth
+    assert user["hasCustomKey"] is False
+
+    r = client.put("/api/v1/auth/api-key", json={"apiKey": "AQ.fake-key-for-testing"}, headers=headers)
+    assert r.status_code == 200
+    body = r.json()
+    assert body["hasCustomKey"] is True
+    assert "apiKey" not in body  # never echoed back
+
+    me = client.get("/api/v1/auth/me", headers=headers).json()
+    assert me["hasCustomKey"] is True
+
+    r = client.put("/api/v1/auth/api-key", json={"apiKey": "  "}, headers=headers)
+    assert r.status_code == 200 and r.json()["hasCustomKey"] is False
+
+
 def test_requires_auth(app_client):
     for path in ("/api/v1/documents", "/api/v1/categories", "/api/v1/conversations", "/api/v1/suggestions"):
         assert app_client.get(path).status_code == 401

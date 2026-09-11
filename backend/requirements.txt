@@ -16,6 +16,7 @@ jsonschema>=4.21
 # --- Auth ------------------------------------------------------------------
 pyjwt>=2.9
 bcrypt>=4.2
+cryptography>=42          # encrypts a user's own API key at rest
 
 # --- Data layer ------------------------------------------------------------
 sqlalchemy>=2.0

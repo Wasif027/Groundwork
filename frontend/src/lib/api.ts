@@ -92,6 +92,9 @@ export const api = {
     request<AuthResponse>("/auth/register", json(b)),
   login: (b: { username: string; password: string }) => request<AuthResponse>("/auth/login", json(b)),
   me: () => request<User>("/auth/me"),
+  // Pass null/"" to clear and revert to the shared key.
+  setApiKey: (apiKey: string | null) =>
+    request<User>("/auth/api-key", { ...json({ apiKey }), method: "PUT" }),
 
   /* ---- meta ---- */
   health: () => request<HealthResponse>("/health"),

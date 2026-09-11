@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.core.request_context import get_user_llm_key
 from app.core.telemetry import tracer
 
 logger = get_logger(__name__)
@@ -255,8 +256,9 @@ def _openai(question: str, passages: list[ContextPassage], system: str, history:
 
     base_url = settings.openai_base_url or None
     # Fail fast to the offline fallback rather than hang if the provider is slow.
+    # A caller's own key (set in deps.get_current_user) takes over their traffic.
     client = OpenAI(
-        api_key=settings.openai_api_key or "not-needed",
+        api_key=get_user_llm_key() or settings.openai_api_key or "not-needed",
         base_url=base_url,
         timeout=settings.llm_timeout_seconds,
         max_retries=2,
@@ -416,7 +418,7 @@ def _json_complete(system: str, user: str, *, max_tokens: int | None = None) -> 
 
     base_url = settings.openai_base_url or None
     client = OpenAI(
-        api_key=settings.openai_api_key or "not-needed",
+        api_key=get_user_llm_key() or settings.openai_api_key or "not-needed",
         base_url=base_url,
         timeout=settings.llm_timeout_seconds,
         max_retries=2,

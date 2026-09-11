@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Mark } from "@/components/ui/Mark";
 import { Spinner } from "@/components/ui/icons";
 
 type Mode = "choose" | "register" | "login";
@@ -50,14 +51,12 @@ export function AuthScreen() {
       />
       <div className="relative w-full max-w-[22rem]">
         <div className="mb-7 text-center">
-          <span className="mx-auto mb-3 grid h-9 w-9 place-items-center rounded-[10px] bg-content-primary text-sm font-bold text-surface-raised">
-            K
-          </span>
-          <h1 className="text-lg font-semibold tracking-tight text-content-primary">
-            Knowledge &amp; Decision Platform
+          <Mark className="mx-auto mb-3.5 h-10 w-10 rounded-[10px]" />
+          <h1 className="font-display text-[1.65rem] font-semibold tracking-tight text-content-primary">
+            Groundwork
           </h1>
-          <p className="mt-1 text-xs text-content-muted">
-            Grounded answers over your own documents.
+          <p className="mt-1.5 text-[0.8rem] text-content-muted">
+            Ask your documents. Get answers you can check.
           </p>
         </div>
 

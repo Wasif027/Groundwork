@@ -95,6 +95,13 @@ class User(TimestampMixin, Base):
     username: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(120))
+    # The user's own Gemini API key, encrypted (app.core.crypto) — never sent
+    # back to the client once saved. NULL = use the shared server key.
+    custom_llm_api_key_enc: Mapped[str | None] = mapped_column(Text)
+
+    @property
+    def has_custom_key(self) -> bool:
+        return self.custom_llm_api_key_enc is not None
 
     conversations: Mapped[list[Conversation]] = relationship(
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True

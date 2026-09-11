@@ -129,6 +129,7 @@ def _ensure_columns() -> None:
     stmts = (
         "ALTER TABLE suggestions ADD COLUMN IF NOT EXISTS kind varchar(16) NOT NULL DEFAULT 'external'",
         "CREATE INDEX IF NOT EXISTS ix_chunks_document_id ON chunks (document_id)",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_llm_api_key_enc text",
     )
     with engine.begin() as conn:
         for stmt in stmts:

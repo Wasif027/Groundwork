@@ -3,15 +3,24 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export type FontScale = "sm" | "md" | "lg";
+export type Density = "comfortable" | "compact";
+
 interface UIState {
   leftWidth: number;
   rightWidth: number;
   leftPinned: boolean;
   rightOpen: boolean;
+  fontScale: FontScale;
+  density: Density;
+  skipCache: boolean;
   setLeftWidth: (w: number) => void;
   setRightWidth: (w: number) => void;
   toggleLeftPinned: () => void;
   toggleRight: () => void;
+  setFontScale: (f: FontScale) => void;
+  setDensity: (d: Density) => void;
+  toggleSkipCache: () => void;
 }
 
 const clamp = (w: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, w));
@@ -23,10 +32,16 @@ export const useUIStore = create<UIState>()(
       rightWidth: 392,
       leftPinned: false,
       rightOpen: true,
+      fontScale: "md",
+      density: "comfortable",
+      skipCache: false,
       setLeftWidth: (w) => set({ leftWidth: clamp(w, 240, 460) }),
       setRightWidth: (w) => set({ rightWidth: clamp(w, 320, 620) }),
       toggleLeftPinned: () => set((s) => ({ leftPinned: !s.leftPinned })),
       toggleRight: () => set((s) => ({ rightOpen: !s.rightOpen })),
+      setFontScale: (f) => set({ fontScale: f }),
+      setDensity: (d) => set({ density: d }),
+      toggleSkipCache: () => set((s) => ({ skipCache: !s.skipCache })),
     }),
     { name: "ekdp-ui" },
   ),

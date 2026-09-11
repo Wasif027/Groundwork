@@ -17,6 +17,7 @@ interface AuthState {
   register: (username: string, password: string, displayName?: string) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
+  setApiKey: (apiKey: string | null) => Promise<{ ok: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>((set) => {
@@ -69,5 +70,15 @@ export const useAuthStore = create<AuthState>((set) => {
     },
 
     clearError: () => set({ error: null }),
+
+    async setApiKey(apiKey) {
+      try {
+        const user = await api.setApiKey(apiKey);
+        set({ user });
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, error: err instanceof ApiError ? err.message : "Couldn't save that key" };
+      }
+    },
   };
 });

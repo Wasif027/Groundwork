@@ -36,7 +36,10 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
   const skeleton = message.pending && !message.content;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-raised p-5 shadow-[0_1px_2px_rgb(var(--shadow)/0.04),0_18px_44px_-22px_rgb(var(--shadow)/0.16)]">
+    <div
+      className="rounded-xl border border-line bg-surface-raised shadow-[0_1px_2px_rgb(var(--shadow)/0.04),0_18px_44px_-22px_rgb(var(--shadow)/0.16)]"
+      style={{ padding: "calc(var(--space-scale, 1) * 1.25rem)" }}
+    >
       {answer?.compareMode && (
         <p className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-1 text-2xs font-medium text-accent">
           <GitCompare className="h-3 w-3" weight="fill" /> comparing documents

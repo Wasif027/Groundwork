@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
-import { ArrowUp, GitCompare, Lightning, Square, type Icon } from "@/components/ui/icons";
+import { useUIStore } from "@/store/useUIStore";
+import { ArrowUp, GitCompare, Square } from "@/components/ui/icons";
 
 export function Composer() {
   const ask = useAppStore((s) => s.ask);
@@ -16,9 +17,9 @@ export function Composer() {
   const compareDocIds = useAppStore((s) => s.compareDocIds);
   const setCompareDocs = useAppStore((s) => s.setCompareDocs);
   const documents = useAppStore((s) => s.documents);
+  const skipCache = useUIStore((s) => s.skipCache);
 
   const [text, setText] = useState("");
-  const [fresh, setFresh] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function Composer() {
   const submit = () => {
     const q = text.trim();
     if (!q || streaming) return;
-    ask(q, { bypassCache: fresh });
+    ask(q, { bypassCache: skipCache });
     setText("");
   };
 
@@ -55,7 +56,10 @@ export function Composer() {
 
   return (
     <div className="border-t border-line bg-surface-raised">
-      <div className="mx-auto w-full max-w-[46rem] px-5 py-4">
+      <div
+        className="mx-auto w-full max-w-[46rem] px-5"
+        style={{ paddingTop: "calc(var(--space-scale, 1) * 1rem)", paddingBottom: "calc(var(--space-scale, 1) * 1rem)" }}
+      >
         {compareDocIds.length > 0 && (
           <div
             className={cn(
@@ -97,9 +101,11 @@ export function Composer() {
             className="max-h-48 w-full resize-none bg-transparent px-1.5 pt-1 text-sm leading-relaxed text-content-primary placeholder:text-content-muted focus:outline-none disabled:opacity-60"
           />
           <div className="mt-1 flex items-center gap-1.5">
-            <Toggle active={fresh} onClick={() => setFresh((v) => !v)} icon={Lightning}>
-              Skip cache
-            </Toggle>
+            {skipCache && (
+              <span className="chip text-content-muted" title="Turn off in Settings → Advanced">
+                Always answering fresh
+              </span>
+            )}
             {activeCategory && (
               <button
                 onClick={() => setCategory(null)}
@@ -134,32 +140,5 @@ export function Composer() {
         </p>
       </div>
     </div>
-  );
-}
-
-function Toggle({
-  active,
-  onClick,
-  icon: I,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: Icon;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-2xs font-medium transition-colors",
-        active
-          ? "border-accent/35 bg-accent-soft text-accent"
-          : "border-line bg-surface-sunken text-content-muted hover:text-content-primary",
-      )}
-    >
-      <I className="h-3 w-3" weight={active ? "fill" : "regular"} />
-      {children}
-    </button>
   );
 }

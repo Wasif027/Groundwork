@@ -161,12 +161,18 @@ class UserRead(APIModel):
     id: str
     username: str
     display_name: str | None = None
+    has_custom_key: bool = False
     created_at: datetime
 
 
 class AuthResponse(APIModel):
     token: str
     user: UserRead
+
+
+class SetApiKeyRequest(APIModel):
+    # Empty/whitespace clears the key and reverts to the shared one.
+    api_key: str | None = Field(default=None, max_length=400)
 
 
 # ------------------------------------------------------------- conversations

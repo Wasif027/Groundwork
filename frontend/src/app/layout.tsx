@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Fraunces, Hanken_Grotesk } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
+
+// Body/UI face — distinct from the Geist-everywhere look most AI tools ship.
+const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+// Display face for real headings only (auth screen, empty state) — warm and a
+// little editorial, fitting "grounded / foundational" without tipping serious.
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Groundwork",
@@ -30,7 +36,11 @@ const NO_FLASH = `(function(){try{var t=localStorage.getItem('ekdp-theme')||(mat
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${sans.variable} ${display.variable} ${GeistMono.variable}`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH }} />
       </head>

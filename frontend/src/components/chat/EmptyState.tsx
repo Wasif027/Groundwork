@@ -34,12 +34,12 @@ export function EmptyState() {
   return (
     <div className="mx-auto w-full max-w-[42rem] px-5 py-14">
       <div className="stagger">
-        <h1 className="text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-content-primary">
+        <h1 className="font-display text-[2.1rem] font-semibold leading-[1.1] tracking-[-0.02em] text-content-primary">
           {hasDocs ? (
             <>
               Ask your
               <br />
-              knowledge base.
+              documents.
             </>
           ) : (
             <>Add a document to get started.</>

@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTheme } from "@/components/providers/ThemeProvider";
-import { CaretDown, Command, ListChecks, Moon, PlusCircle, SignOut, Sun } from "@/components/ui/icons";
+import { SettingsPanel } from "@/components/settings/SettingsPanel";
+import { Mark } from "@/components/ui/Mark";
+import { CaretDown, Command, Gear, ListChecks, Moon, PlusCircle, SignOut, Sun } from "@/components/ui/icons";
 
 export function TopBar({
   onOpenPalette,
@@ -25,6 +27,7 @@ export function TopBar({
   const logout = useAuthStore((s) => s.logout);
 
   const [menu, setMenu] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,24 +48,25 @@ export function TopBar({
   return (
     <header className="z-header flex h-12 shrink-0 items-center gap-3 border-b border-line bg-surface-raised/90 px-3 backdrop-blur">
       <div className="flex items-center gap-2.5 pl-1">
-        <span className="grid h-6 w-6 place-items-center rounded-[7px] bg-content-primary text-[0.7rem] font-bold text-surface-raised">
-          K
-        </span>
+        <Mark className="h-6 w-6 shrink-0 rounded-[7px]" />
         {activeTitle ? (
           <span className="max-w-[38ch] truncate text-[0.82rem] font-medium text-content-primary">
             {activeTitle}
           </span>
         ) : (
-          <span className="text-[0.82rem] font-semibold tracking-tight text-content-primary">
-            Knowledge <span className="font-normal text-content-muted">&amp; Decision Platform</span>
+          <span className="font-display text-[0.9rem] font-semibold tracking-tight text-content-primary">
+            Groundwork
           </span>
         )}
       </div>
 
-      <span className="ml-1 hidden items-center gap-1.5 rounded-full border border-line bg-surface-sunken/60 px-2 py-[3px] sm:flex">
+      <span
+        className="ml-1 hidden items-center gap-1.5 rounded-full border border-line bg-surface-sunken/60 px-2 py-[3px] sm:flex"
+        title={!health ? undefined : health.llmActive ? `Model: ${health.llmModel}` : undefined}
+      >
         <span className={cn("h-1.5 w-1.5 rounded-full", tone)} />
         <span className="text-2xs text-content-muted">
-          {!health ? "API offline" : health.llmActive ? health.llmModel : "offline mode"}
+          {!health ? "API offline" : health.llmActive ? "Answers are grounded" : "Offline mode"}
         </span>
       </span>
 
@@ -116,6 +120,15 @@ export function TopBar({
               <button
                 onClick={() => {
                   setMenu(false);
+                  setSettingsOpen(true);
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-content-secondary transition-colors hover:bg-surface-sunken hover:text-content-primary"
+              >
+                <Gear className="h-3.5 w-3.5" /> Settings
+              </button>
+              <button
+                onClick={() => {
+                  setMenu(false);
                   logout();
                 }}
                 className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-content-secondary transition-colors hover:bg-surface-sunken hover:text-danger"
@@ -126,6 +139,7 @@ export function TopBar({
           )}
         </div>
       </div>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </header>
   );
 }

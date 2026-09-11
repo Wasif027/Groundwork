@@ -145,6 +145,7 @@ export interface User {
   id: string;
   username: string;
   displayName: string | null;
+  hasCustomKey: boolean;
   createdAt: string;
 }
 
