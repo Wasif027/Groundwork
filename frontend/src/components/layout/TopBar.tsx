@@ -46,7 +46,8 @@ export function TopBar({
   const tone = !health ? "bg-danger" : dbUp ? "bg-positive" : "bg-caution";
 
   return (
-    <header className="z-header flex h-12 shrink-0 items-center gap-3 border-b border-line bg-surface-raised/90 px-3 backdrop-blur">
+    <>
+      <header className="z-header flex h-12 shrink-0 items-center gap-3 border-b border-line bg-surface-raised/90 px-3 backdrop-blur">
       <div className="flex items-center gap-2.5 pl-1">
         <Mark className="h-6 w-6 shrink-0 rounded-[7px]" />
         {activeTitle ? (
@@ -139,7 +140,11 @@ export function TopBar({
           )}
         </div>
       </div>
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </header>
+    {/* Rendered outside <header>: the header has backdrop-blur, which makes it
+        a CSS containing block for fixed-position descendants — nesting the
+        modal in there clipped it to the header's own ~48px box. */}
+    <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </>
   );
 }
