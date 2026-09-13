@@ -3,11 +3,10 @@
 import { useState } from "react";
 
 import type { ChatMessage } from "@/lib/types";
-import { cn, copyToClipboard, formatMs } from "@/lib/utils";
+import { copyToClipboard, formatMs } from "@/lib/utils";
 import { toast } from "@/store/useToast";
 import { useAppStore } from "@/store/useAppStore";
-import { ConfidenceBadge } from "@/components/ui/ConfidenceGauge";
-import { ArrowElbowDownRight, ChartBar, Check, Copy, GitCompare, Sparkle, Spinner, Warning } from "@/components/ui/icons";
+import { ArrowElbowDownRight, Check, Copy, GitCompare, Spinner, Warning } from "@/components/ui/icons";
 import { AnalysisView } from "./AnalysisView";
 import { AnswerText } from "./AnswerText";
 
@@ -55,31 +54,6 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
       {answer?.compareMode && (
         <p className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-1 text-2xs font-medium text-accent">
           <GitCompare className="h-3 w-3" weight="fill" /> comparing documents
-        </p>
-      )}
-      {answer && !answer.compareMode && answer.retrievalMode !== "pinpoint" && answer.retrievalMode !== "meta" && (
-        <p
-          className={cn(
-            "mb-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-2xs font-medium",
-            answer.retrievalMode === "analysis"
-              ? "bg-accent-soft text-accent"
-              : "bg-surface-sunken text-content-secondary",
-          )}
-          title={answer.retrievalNote}
-        >
-          {answer.retrievalMode === "analysis" ? (
-            <ChartBar className="h-3 w-3" weight="fill" />
-          ) : (
-            <Sparkle className="h-3 w-3" weight="fill" />
-          )}
-          {answer.retrievalMode === "analysis"
-            ? "computed answer"
-            : answer.retrievalMode === "document"
-              ? "full-document read"
-              : "broad scan"}
-          {answer.retrievalMode === "analysis" && answer.analysis?.tablesUsed?.length
-            ? ` · ${answer.analysis.tablesUsed.join(", ")}`
-            : ""}
         </p>
       )}
       <div aria-live="polite" aria-atomic="false">
@@ -135,8 +109,9 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-3 text-2xs text-content-muted">
             {answer.retrievalMode !== "meta" && (
               <>
-                <ConfidenceBadge value={answer.confidence} label={answer.confidenceLabel} />
-                <span className="tnum">{answer.citations.length} cited</span>
+                <span className="tnum">
+                  {answer.citations.length} source{answer.citations.length === 1 ? "" : "s"}
+                </span>
                 <span aria-hidden>·</span>
               </>
             )}
@@ -174,5 +149,5 @@ function toMarkdown(m: ChatMessage): string {
   const a = m.answer;
   if (!a) return m.content;
   const cites = a.citations.map((c) => `[${c.marker}] ${c.title}${c.quote ? ` — "${c.quote}"` : ""}`).join("\n");
-  return `**Q:** ${a.question}\n\n${a.answer}\n\n---\n**Confidence:** ${(a.confidence * 100).toFixed(0)}% (${a.confidenceLabel})  ·  **Model:** ${a.model}\n\n**Sources**\n${cites}`;
+  return `**Q:** ${a.question}\n\n${a.answer}\n\n---\n**Model:** ${a.model}\n\n**Sources**\n${cites}`;
 }

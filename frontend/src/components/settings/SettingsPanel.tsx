@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUIStore } from "@/store/useUIStore";
+import { UI_SCALE_MAX, UI_SCALE_MIN, useUIStore } from "@/store/useUIStore";
 import { toast } from "@/store/useToast";
 import { Modal } from "@/components/ui/Modal";
 import { Toggle } from "@/components/ui/Toggle";
@@ -13,10 +13,8 @@ import { CaretDown, Check, Key, Lightning, Spinner } from "@/components/ui/icons
 export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const setApiKey = useAuthStore((s) => s.setApiKey);
-  const fontScale = useUIStore((s) => s.fontScale);
-  const density = useUIStore((s) => s.density);
-  const setFontScale = useUIStore((s) => s.setFontScale);
-  const setDensity = useUIStore((s) => s.setDensity);
+  const uiScale = useUIStore((s) => s.uiScale);
+  const setUiScale = useUIStore((s) => s.setUiScale);
   const skipCache = useUIStore((s) => s.skipCache);
   const toggleSkipCache = useUIStore((s) => s.toggleSkipCache);
 
@@ -51,26 +49,21 @@ export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () =>
       <div className="space-y-6">
         <section>
           <h3 className="label mb-2.5">Appearance</h3>
-          <div className="space-y-2.5">
-            <Segmented
-              label="Text size"
-              value={fontScale}
-              onChange={setFontScale}
-              options={[
-                { value: "sm", label: "Small" },
-                { value: "md", label: "Default" },
-                { value: "lg", label: "Large" },
-              ]}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-content-secondary">Interface size</span>
+            <input
+              type="range"
+              min={UI_SCALE_MIN}
+              max={UI_SCALE_MAX}
+              step={0.05}
+              value={uiScale}
+              onChange={(e) => setUiScale(Number(e.target.value))}
+              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-surface-sunken accent-accent"
+              aria-label="Interface size"
             />
-            <Segmented
-              label="Layout"
-              value={density}
-              onChange={setDensity}
-              options={[
-                { value: "comfortable", label: "Comfortable" },
-                { value: "compact", label: "Compact" },
-              ]}
-            />
+            <span className="tnum w-10 shrink-0 text-right text-xs text-content-muted">
+              {Math.round(uiScale * 100)}%
+            </span>
           </div>
         </section>
 
@@ -167,39 +160,5 @@ export function SettingsPanel({ open, onClose }: { open: boolean; onClose: () =>
         </section>
       </div>
     </Modal>
-  );
-}
-
-function Segmented<T extends string>({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: T;
-  onChange: (v: T) => void;
-  options: { value: T; label: string }[];
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-xs text-content-secondary">{label}</span>
-      <div className="inline-flex rounded-lg border border-line bg-surface-sunken p-0.5">
-        {options.map((o) => (
-          <button
-            key={o.value}
-            onClick={() => onChange(o.value)}
-            className={cn(
-              "rounded-[6px] px-2.5 py-1 text-2xs font-medium transition-colors",
-              value === o.value
-                ? "bg-surface-raised text-content-primary shadow-sm"
-                : "text-content-muted hover:text-content-primary",
-            )}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

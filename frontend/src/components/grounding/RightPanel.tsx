@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { useUIStore } from "@/store/useUIStore";
-import { ConfidenceGauge } from "@/components/ui/ConfidenceGauge";
 import { SuggestionCard } from "@/components/suggestions/SuggestionCard";
 import { ChartBar, GitCompare, ListChecks, Sparkle, Stack, X, type Icon } from "@/components/ui/icons";
 import { ResizeHandle } from "@/components/layout/ResizeHandle";
@@ -110,13 +109,15 @@ export function RightPanel() {
               <Empty
                 icon={Sparkle}
                 title="No answer yet"
-                body="Ask a question to see the confidence score and the exact passages the answer is built from — the cited ones are marked with their [n]. Analytic questions over a spreadsheet show the computed result and the query."
+                body="Ask a question to see the exact passages the answer is built from — the cited ones are marked with their [n]. Analytic questions over a spreadsheet show the computed result and the query."
               />
             ) : (
               <>
                 <div className="border-b border-line px-4 py-4">
                   {activeAnswer ? (
-                    <ConfidenceGauge value={activeAnswer.confidence} label={activeAnswer.confidenceLabel} />
+                    <p className="text-sm font-medium text-content-primary">
+                      {activeAnswer.citations.length} source{activeAnswer.citations.length === 1 ? "" : "s"}
+                    </p>
                   ) : (
                     <p className="text-xs text-content-muted">
                       {analysis ? "Computing…" : "Retrieving evidence…"}

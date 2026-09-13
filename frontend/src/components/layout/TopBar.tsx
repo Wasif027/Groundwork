@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -18,7 +17,6 @@ export function TopBar({
   onOpenHistory: () => void;
 }) {
   const { theme, toggle } = useTheme();
-  const health = useAppStore((s) => s.health);
   const newChat = useAppStore((s) => s.newChat);
   const messages = useAppStore((s) => s.messages);
   const conversations = useAppStore((s) => s.conversations);
@@ -42,9 +40,6 @@ export function TopBar({
     conversations.find((c) => c.id === activeId)?.title ??
     (messages.length ? messages[0]?.content?.slice(0, 60) : null);
 
-  const dbUp = health?.services?.postgres === "up";
-  const tone = !health ? "bg-danger" : dbUp ? "bg-positive" : "bg-caution";
-
   return (
     <>
       <header className="z-header flex h-12 shrink-0 items-center gap-3 border-b border-line bg-surface-raised/90 px-3 backdrop-blur">
@@ -60,16 +55,6 @@ export function TopBar({
           </span>
         )}
       </div>
-
-      <span
-        className="ml-1 hidden items-center gap-1.5 rounded-full border border-line bg-surface-sunken/60 px-2 py-[3px] sm:flex"
-        title={!health ? undefined : health.llmActive ? `Model: ${health.llmModel}` : undefined}
-      >
-        <span className={cn("h-1.5 w-1.5 rounded-full", tone)} />
-        <span className="text-2xs text-content-muted">
-          {!health ? "API offline" : health.llmActive ? "Answers are grounded" : "Offline mode"}
-        </span>
-      </span>
 
       <div className="ml-auto flex items-center gap-1.5">
         {messages.length > 0 && (
