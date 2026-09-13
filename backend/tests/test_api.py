@@ -84,6 +84,27 @@ def test_auth_flow(app_client):
     assert app_client.post("/api/v1/auth/login", json={"username": "flowuser", "password": "wrong"}).status_code == 401
 
 
+def test_concurrent_register_never_500s(app_client):
+    """Two near-simultaneous registrations for the same username (a double
+    click, or a client retrying after a slow response) used to race past the
+    pre-check and hit the DB's unique constraint as a raw, uncaught 500."""
+    import uuid
+    from concurrent.futures import ThreadPoolExecutor
+
+    username = f"race_{uuid.uuid4().hex[:10]}"
+    body = {"username": username, "password": "password123"}
+
+    def _register():
+        return app_client.post("/api/v1/auth/register", json=body).status_code
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        codes = list(pool.map(lambda _: _register(), range(2)))
+
+    assert 500 not in codes
+    assert codes.count(201) == 1
+    assert codes.count(409) == 1
+
+
 def test_set_and_clear_own_api_key(auth):
     client, headers, user = auth
     assert user["hasCustomKey"] is False

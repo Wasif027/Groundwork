@@ -70,16 +70,17 @@ export function EmptyState() {
             </div>
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-1.5 text-2xs text-content-muted">
               <span className="inline-flex items-center gap-1.5">
-                <Stack className="h-3 w-3" /> hybrid retrieval · vector + keyword + rerank
+                <Stack className="h-3 w-3" /> finds answers by meaning and by exact keyword
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <GitCompare className="h-3 w-3" /> tick 2+ documents to compare them
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-flex items-center gap-1.5"
+                title={health?.llmActive ? `Model: ${health.llmProvider} · ${health.llmModel}` : undefined}
+              >
                 <ShieldCheck className="h-3 w-3" />
-                {health?.llmActive
-                  ? `${health.llmProvider} · ${health.llmModel}`
-                  : "offline extractive mode"}
+                {health?.llmActive ? "answers are grounded" : "offline extractive mode"}
               </span>
             </div>
           </>

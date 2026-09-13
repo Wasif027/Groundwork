@@ -66,6 +66,23 @@ def test_user_llm_key_overrides_the_client_api_key(monkeypatch):
     assert captured["api_key"] == "the-users-own-key"
 
 
+def test_generate_sql_degrades_instead_of_raising(monkeypatch):
+    """A question that gets misrouted to analysis (e.g. a plain-English 'how
+    many ...' policy question with no data behind it) must not 500 when the
+    model call itself fails — generate_sql has to fail the same soft way a
+    genuine 'can't answer from this data' does, so rag falls back to normal
+    retrieval instead of crashing the request."""
+    from app.services import llm as llm_mod
+
+    def _boom(*a, **k):
+        raise RuntimeError("simulated provider failure (e.g. rate limit)")
+
+    monkeypatch.setattr(llm_mod, "_json_complete", _boom)
+    sql, assumptions = llm_mod.generate_sql("how many days of annual leave do staff get?", "schema: (none)")
+    assert sql == ""
+    assert assumptions  # a real explanation, not silently empty
+
+
 # ---------------------------------------------------------------- chunking
 def test_chunking_respects_headings_and_overlap():
     text = (
@@ -140,6 +157,30 @@ def test_offline_synthesis_low_confidence_without_evidence():
     synth = _offline("unrelated question", [])
     assert synth.confidence < 0.2
     assert not synth.citations
+
+
+def test_offline_overview_does_not_leak_a_raw_table_and_lists_per_document():
+    """A spreadsheet-preview chunk has no sentence punctuation to split on —
+    without a length cap the 'first sentence' used to be the entire raw
+    markdown table, pasted straight into the answer. Overview mode also spans
+    several unrelated documents, so it should read as a labelled list, not a
+    run-on paragraph."""
+    table_chunk = (
+        "Columns: department (text), headcount (number)\nRows: 6\n"
+        "| department | headcount |\n| --- | --- |\n"
+        + "\n".join(f"| Dept{i} | {i * 10} |" for i in range(1, 30))  # long, no '.'/'!'/'?' anywhere
+    )
+    passages = [
+        ContextPassage(1, "c1", "Quarterly Review", None, "Headcount is up this quarter.", 0.6),
+        ContextPassage(2, "c2", "Headcount Sheet", None, table_chunk, 0.5),
+        ContextPassage(3, "c3", "Grievance Handbook", None, "Acknowledge complaints within 2 working days.", 0.4),
+    ]
+    synth = _offline("give me an overview", passages, mode="overview")
+    assert "| Dept" not in synth.answer  # the raw table never made it into the prose
+    assert len(synth.answer) < 700  # capped, not a wall of concatenated table rows
+    for title in ("Quarterly Review", "Headcount Sheet", "Grievance Handbook"):
+        assert title in synth.answer  # each source document is clearly labelled
+    assert "[1]" in synth.answer and "[2]" in synth.answer and "[3]" in synth.answer
 
 
 # ------------------------------------------------------------- parsing

@@ -162,18 +162,33 @@ def _offline(
     q_terms = set(_terms(question))
 
     if mode in ("document", "overview") and passages:
-        # No model: stitch the opening sentence of each passage into an outline.
-        picked = []
+        # No model: stitch a short excerpt of each passage into an outline.
+        picked: list[CitationUse] = []
         for p in passages[: (12 if mode == "document" else 8)]:
-            first = next((s.strip() for s in _SENT_RE.split(p.text) if s.strip()), p.text[:200].strip())
+            text = p.text.strip()
+            if text.startswith("Columns:"):
+                # A spreadsheet-preview chunk — there's no sentence to pull
+                # out, and splitting on '.'/'!'/'?' does nothing inside a
+                # markdown table, so without this the "first sentence" was
+                # the raw table pasted straight into the answer.
+                first = text.split("\n", 1)[0]
+            else:
+                first = next((s.strip() for s in _SENT_RE.split(text) if s.strip()), text[:220])
+            if len(first) > 220:
+                first = first[:220].rsplit(" ", 1)[0].rstrip(",;:") + "…"
             picked.append(CitationUse(marker=p.marker, quote=first))
-        body = " ".join(f"{c.quote} [{c.marker}]" for c in picked)
-        lead = (
-            f"Outline of {passages[0].title}:" if mode == "document"
-            else "Across the knowledge base:"
-        )
+        if mode == "document":
+            body = " ".join(f"{c.quote} [{c.marker}]" for c in picked)
+            answer = f"{prefix}Outline of {passages[0].title}: {body}"
+        else:
+            # Overview spans several unrelated documents — a run-on paragraph
+            # reads as noise, not a summary. One labelled line per document.
+            lines = "\n".join(
+                f"- **{p.title}** — {c.quote} [{c.marker}]" for p, c in zip(passages, picked, strict=False)
+            )
+            answer = f"{prefix}Across your documents:\n\n{lines}"
         return Synthesis(
-            answer=f"{prefix}{lead} {body}",
+            answer=answer,
             citations=picked,
             confidence=0.5,
             follow_ups=[f"What are the specifics in {passages[0].title}?"],
@@ -474,14 +489,25 @@ _ANALYSIS_SYSTEM = (
 
 
 def generate_sql(question: str, schema: str, *, history: str | None = None, prior_error: str | None = None) -> tuple[str, str]:
-    """Return ``(sql, assumptions)``. ``sql`` is "" when the model declines."""
+    """Return ``(sql, assumptions)``. ``sql`` is "" when the model declines or errors.
+
+    A question that's actually a plain document question (not spreadsheet data)
+    routinely ends up here too — the fast keyword router over-routes on purpose
+    (see query_planner) and relies on this returning "" so rag falls back to
+    normal retrieval. So a provider failure must degrade the same way a genuine
+    "I can't answer this from the data" does, not raise.
+    """
     parts = [f"Schema:\n{schema}"]
     if history:
         parts.append(history)
     if prior_error:
         parts.append(f"The previous query failed with: {prior_error}\nFix it.")
     parts.append(f"Question: {question}")
-    data = _json_complete(_SQL_SYSTEM, "\n\n".join(parts), max_tokens=700)
+    try:
+        data = _json_complete(_SQL_SYSTEM, "\n\n".join(parts), max_tokens=700)
+    except Exception as exc:
+        logger.warning("generate_sql_failed", error=str(exc))
+        return "", "the analysis service is temporarily busy — try again in a moment"
     return str(data.get("sql", "")).strip(), str(data.get("assumptions", "")).strip()
 
 

@@ -6,6 +6,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.crypto import encrypt_secret
@@ -37,7 +38,14 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)) -> AuthRespon
         display_name=(body.display_name or "").strip() or None,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Two near-simultaneous registrations (double-click, a client retry
+        # after a slow response) can both pass the SELECT check above before
+        # either commits — the DB's own unique constraint is the real guard.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="username already taken") from None
     db.refresh(user)
     return _auth_response(user)
 
