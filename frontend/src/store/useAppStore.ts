@@ -379,6 +379,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   async runSuggestion(messageId, suggestion) {
     if (get().streaming) return;
+    // A compare-mode selection left over from an earlier question would
+    // otherwise silently scope this to just those documents (same fix as
+    // summariseDoc/analyseDoc) and produce a false "not mentioned" answer.
+    if (get().compareDocIds.length) set({ compareDocIds: [] });
     // Ask it as a normal grounded question, then log the suggestion as done.
     await get().ask(suggestion.text, { suggest: false });
     await get().decideSuggestion(messageId, suggestion.id, "done", "ran from suggestion");
