@@ -107,7 +107,12 @@ def resolve_conversation(db: Session, user: User, conversation_id: str | None, f
         if conv is None or conv.user_id != user.id:
             raise HTTPException(status_code=404, detail="conversation not found")
         return conv
-    title = first_prompt.strip().split("\n", 1)[0][:80] or "New chat"
+    title = first_prompt.strip().split("\n", 1)[0]
+    if len(title) > 80:
+        # A hard character slice used to cut mid-word — break at the last
+        # whole word instead.
+        title = title[:80].rsplit(" ", 1)[0].rstrip(",;:.!?") + "…"
+    title = title or "New chat"
     conv = Conversation(id=str(uuid.uuid4()), user_id=user.id, title=title)
     db.add(conv)
     db.flush()

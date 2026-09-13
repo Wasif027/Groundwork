@@ -34,3 +34,12 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export function scorePercent(score: number): string {
   return `${(Math.max(0, Math.min(1, score)) * 100).toFixed(0)}%`;
 }
+
+/** Truncate at the last whole word before `limit` instead of mid-word. */
+export function truncateAtWord(text: string | undefined | null, limit: number): string {
+  const s = (text ?? "").trim();
+  if (s.length <= limit) return s;
+  const cut = s.slice(0, limit);
+  const at = cut.lastIndexOf(" ");
+  return (at > 0 ? cut.slice(0, at) : cut).replace(/[,;:.!?]+$/, "") + "…";
+}

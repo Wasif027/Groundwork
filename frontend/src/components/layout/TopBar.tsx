@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { truncateAtWord } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -38,7 +39,7 @@ export function TopBar({
 
   const activeTitle =
     conversations.find((c) => c.id === activeId)?.title ??
-    (messages.length ? messages[0]?.content?.slice(0, 60) : null);
+    (messages.length ? truncateAtWord(messages[0]?.content, 60) : null);
 
   return (
     <>
