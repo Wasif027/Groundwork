@@ -44,6 +44,8 @@ export function CommandPalette({
   const newChat = useAppStore((s) => s.newChat);
   const refreshMeta = useAppStore((s) => s.refreshMeta);
   const ask = useAppStore((s) => s.ask);
+  const compareDocIds = useAppStore((s) => s.compareDocIds);
+  const setCompareDocs = useAppStore((s) => s.setCompareDocs);
   const logout = useAuthStore((s) => s.logout);
 
   const [q, setQ] = useState("");
@@ -75,11 +77,30 @@ export function CommandPalette({
         id: "ask",
         label: `Ask "${q.trim()}"`,
         icon: ChatCircleDots,
-        run: () => ask(q.trim(), {}),
+        // A compare-mode selection left over from elsewhere would otherwise
+        // silently narrow this ask to just those documents.
+        run: () => {
+          if (compareDocIds.length) setCompareDocs([]);
+          ask(q.trim(), {});
+        },
       });
     }
     return base;
-  }, [conversations, q, theme, toggle, openChat, newChat, refreshMeta, ask, onAddDocument, onOpenHistory, logout]);
+  }, [
+    conversations,
+    q,
+    theme,
+    toggle,
+    openChat,
+    newChat,
+    refreshMeta,
+    ask,
+    compareDocIds,
+    setCompareDocs,
+    onAddDocument,
+    onOpenHistory,
+    logout,
+  ]);
 
   const filtered = commands.filter((c) => c.id === "ask" || c.label.toLowerCase().includes(q.toLowerCase()));
 

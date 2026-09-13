@@ -15,12 +15,23 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
   const highlightChunk = useAppStore((s) => s.highlightChunk);
   const ask = useAppStore((s) => s.ask);
   const streaming = useAppStore((s) => s.streaming);
+  const compareDocIds = useAppStore((s) => s.compareDocIds);
+  const setCompareDocs = useAppStore((s) => s.setCompareDocs);
   const [copied, setCopied] = useState(false);
   const answer = message.answer;
 
   const onCite = (marker: number) => {
     const c = answer?.citations.find((x) => x.marker === marker);
     if (c) highlightChunk(c.chunkId);
+  };
+
+  const askFollowUp = (f: string) => {
+    // A compare-mode selection left over from a *different* question would
+    // otherwise silently narrow this follow-up's scope to just those two
+    // documents. Only keep it when this card's own answer was itself a
+    // compare answer, where the selection is still the right context.
+    if (!answer?.compareMode && compareDocIds.length) setCompareDocs([]);
+    ask(f, {});
   };
 
   if (message.error) {
@@ -109,7 +120,7 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
                 <button
                   key={f}
                   disabled={streaming}
-                  onClick={() => ask(f, {})}
+                  onClick={() => askFollowUp(f)}
                   className="chip transition-[border-color,color] hover:border-accent/50 hover:text-accent disabled:opacity-50"
                 >
                   <ArrowElbowDownRight className="h-3 w-3" />

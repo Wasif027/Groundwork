@@ -10,9 +10,18 @@ export function EmptyState() {
   const documents = useAppStore((s) => s.documents);
   const categories = useAppStore((s) => s.categories);
   const ask = useAppStore((s) => s.ask);
+  const compareDocIds = useAppStore((s) => s.compareDocIds);
+  const setCompareDocs = useAppStore((s) => s.setCompareDocs);
   const loadingMeta = useAppStore((s) => s.loadingMeta);
   const health = useAppStore((s) => s.health);
   const [ingestOpen, setIngestOpen] = useState(false);
+
+  const askStarter = (q: string) => {
+    // A compare-mode selection left over from a previous chat would otherwise
+    // silently narrow this starter question to just those documents.
+    if (compareDocIds.length) setCompareDocs([]);
+    ask(q, {});
+  };
 
   const hasDocs = documents.length > 0;
 
@@ -57,7 +66,7 @@ export function EmptyState() {
               {starters.map((q) => (
                 <button
                   key={q}
-                  onClick={() => ask(q, {})}
+                  onClick={() => askStarter(q)}
                   className="group flex items-center gap-4 py-3.5 text-left transition-colors hover:bg-surface-sunken/60"
                 >
                   <Quotes className="h-4 w-4 shrink-0 text-content-muted transition-colors group-hover:text-accent" />
