@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 
-import { Spinner } from "@/components/ui/icons";
 import { useAuthStore } from "@/store/useAuthStore";
 import { AuthScreen } from "./AuthScreen";
 
@@ -14,13 +13,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     bootstrap();
   }, [bootstrap]);
 
-  if (status === "loading") {
-    return (
-      <div className="grid min-h-[100dvh] place-items-center text-content-muted">
-        <Spinner className="h-5 w-5 animate-spin" />
-      </div>
-    );
-  }
-  if (status === "anon") return <AuthScreen />;
+  // Show the real sign-in screen while the session check is in flight instead
+  // of a bare spinner — the initial HTML then always carries a real H1 and
+  // product proposition (crawlers/link-previews never see JS-only content),
+  // and a logged-out visitor sees this exact screen either way. A returning
+  // logged-in visitor briefly sees it flash before the app takes over.
+  if (status === "loading" || status === "anon") return <AuthScreen />;
   return <>{children}</>;
 }
