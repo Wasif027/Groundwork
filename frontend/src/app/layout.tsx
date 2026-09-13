@@ -12,6 +12,7 @@ const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans", displ
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://hellogroundwork.vercel.app"),
   title: "Groundwork",
   description:
     "Grounded RAG over your business documents — cited answers, spreadsheet analytics and an AI next-step decision log.",

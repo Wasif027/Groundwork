@@ -42,7 +42,7 @@ export function TopBar({
     conversations.find((c) => c.id === activeId)?.title ??
     (messages.length ? messages[0]?.content?.slice(0, 60) : null);
 
-  const dbUp = health?.services.postgres === "up";
+  const dbUp = health?.services?.postgres === "up";
   const tone = !health ? "bg-danger" : dbUp ? "bg-positive" : "bg-caution";
 
   return (

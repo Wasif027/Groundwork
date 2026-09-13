@@ -98,7 +98,7 @@ export function Composer() {
                   : "Ask a question about your documents…"
             }
             disabled={streaming}
-            className="max-h-48 w-full resize-none bg-transparent px-1.5 pt-1 text-sm leading-relaxed text-content-primary placeholder:text-content-muted focus:outline-none disabled:opacity-60"
+            className="max-h-48 w-full resize-none bg-transparent px-1.5 pt-1 text-base leading-relaxed text-content-primary placeholder:text-content-muted focus:outline-none disabled:opacity-60 sm:text-sm"
           />
           <div className="mt-1 flex items-center gap-1.5">
             {skipCache && (

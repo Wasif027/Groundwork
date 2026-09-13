@@ -36,7 +36,7 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
 
   if (message.error) {
     return (
-      <div className="card border-danger/35 bg-danger/6 p-4">
+      <div role="alert" className="card border-danger/35 bg-danger/6 p-4">
         <p className="flex items-center gap-2 text-sm font-medium text-danger">
           <Warning className="h-4 w-4" weight="fill" /> Could not answer
         </p>
@@ -82,24 +82,26 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
             : ""}
         </p>
       )}
-      {skeleton ? (
-        <div className="space-y-2.5">
-          <div className="skeleton h-3 w-2/3" />
-          <div className="skeleton h-3 w-full" />
-          <div className="skeleton h-3 w-11/12" />
-          <div className="skeleton h-3 w-4/5" />
-          <p className="flex items-center gap-1.5 pt-1 text-2xs text-content-muted">
-            <Spinner className="h-3 w-3 animate-spin" /> retrieving &amp; reranking passages
-          </p>
-        </div>
-      ) : (
-        <AnswerText
-          text={message.content}
-          citations={answer?.citations ?? []}
-          onCite={onCite}
-          streaming={message.pending}
-        />
-      )}
+      <div aria-live="polite" aria-atomic="false">
+        {skeleton ? (
+          <div className="space-y-2.5">
+            <div className="skeleton h-3 w-2/3" />
+            <div className="skeleton h-3 w-full" />
+            <div className="skeleton h-3 w-11/12" />
+            <div className="skeleton h-3 w-4/5" />
+            <p className="flex items-center gap-1.5 pt-1 text-2xs text-content-muted">
+              <Spinner className="h-3 w-3 animate-spin" /> retrieving &amp; reranking passages
+            </p>
+          </div>
+        ) : (
+          <AnswerText
+            text={message.content}
+            citations={answer?.citations ?? []}
+            onCite={onCite}
+            streaming={message.pending}
+          />
+        )}
+      </div>
 
       {answer?.retrievalMode === "analysis" && answer.analysis && !message.pending && (
         <AnalysisView analysis={answer.analysis} />

@@ -17,7 +17,10 @@
   --line-strong: 205 200 188;
   --content-primary: 28 26 23;
   --content-secondary: 82 78 70;
-  --content-muted: 128 122 110;
+  /* Was 128 122 110 (#807A6E) — measured ~3.9:1 on this light background,
+   * missing WCAG AA's 4.5:1. Darkened (not lightened — this is a light
+   * background, so contrast improves by going darker) to ~5.2:1. */
+  --content-muted: 108 103 92;
   --content-inverted: 250 249 246;
   --accent: 176 116 40;          /* ochre */
   --accent-soft: 244 236 222;
@@ -39,7 +42,10 @@
   --line-strong: 58 55 49;
   --content-primary: 237 234 227;
   --content-secondary: 178 172 160;
-  --content-muted: 129 123 111;
+  /* Was 129 123 111 — measured ~4.49:1 on this dark background, narrowly
+   * missing 4.5:1 (the same near-miss as light mode, in the opposite
+   * direction: lightened here since this is a dark background). ~5.2:1 now. */
+  --content-muted: 140 134 120;
   --content-inverted: 18 17 16;
   --accent: 224 168 92;
   --accent-soft: 44 37 27;
@@ -177,8 +183,11 @@ h3 {
   .btn-ghost {
     @apply border-transparent bg-transparent hover:bg-surface-sunken;
   }
+  /* text-base (16px) below sm: iOS Safari force-zooms on focus for any input
+   * under 16px and doesn't zoom back out — text-sm (14px) alone breaks that
+   * on mobile. Back to text-sm at sm: and up, where zoom-on-focus doesn't apply. */
   .input {
-    @apply w-full rounded-lg border border-line bg-surface-base px-3 py-2 text-sm text-content-primary placeholder:text-content-muted focus:outline-none;
+    @apply w-full rounded-lg border border-line bg-surface-base px-3 py-2 text-base text-content-primary placeholder:text-content-muted focus:outline-none sm:text-sm;
   }
   .input:focus {
     border-color: rgb(var(--accent) / 0.55);

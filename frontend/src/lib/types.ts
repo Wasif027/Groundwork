@@ -210,13 +210,14 @@ export interface IngestionResponse {
 export interface HealthResponse {
   status: "healthy" | "degraded" | "unhealthy";
   version: string;
-  env: string;
-  services: { postgres: string; redis: string; api: string };
-  llmProvider: string;
-  llmModel: string;
-  llmActive: boolean;
-  embeddingProvider: string;
-  embeddingDim: number;
+  // Only populated for authenticated callers — see backend routers/health.py.
+  env?: string;
+  services?: { postgres: string; redis: string; api: string };
+  llmProvider?: string;
+  llmModel?: string;
+  llmActive?: boolean;
+  embeddingProvider?: string;
+  embeddingDim?: number;
 }
 
 /* ------------------------------------------------------------------ stream */

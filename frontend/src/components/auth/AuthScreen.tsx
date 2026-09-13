@@ -40,7 +40,7 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-5">
+    <main className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-5">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -118,6 +118,7 @@ export function AuthScreen() {
                   onChange={(e) => setConfirm(e.target.value)}
                   autoComplete="new-password"
                   required
+                  minLength={8}
                   className="input"
                 />
               </label>
@@ -149,6 +150,6 @@ export function AuthScreen() {
           private to your account.
         </p>
       </div>
-    </div>
+    </main>
   );
 }
