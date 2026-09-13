@@ -115,8 +115,6 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
                 <span aria-hidden>·</span>
               </>
             )}
-            <span className="font-mono">{answer.model}</span>
-            <span aria-hidden>·</span>
             <span className="tnum">{formatMs(answer.latencyMs)}</span>
             {answer.cached && <span className="chip py-0.5">cached</span>}
             <button
@@ -149,5 +147,5 @@ function toMarkdown(m: ChatMessage): string {
   const a = m.answer;
   if (!a) return m.content;
   const cites = a.citations.map((c) => `[${c.marker}] ${c.title}${c.quote ? ` — "${c.quote}"` : ""}`).join("\n");
-  return `**Q:** ${a.question}\n\n${a.answer}\n\n---\n**Model:** ${a.model}\n\n**Sources**\n${cites}`;
+  return `**Q:** ${a.question}\n\n${a.answer}\n\n---\n**Sources**\n${cites}`;
 }

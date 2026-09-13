@@ -134,10 +134,6 @@ export function Composer() {
             </div>
           </div>
         </div>
-        <p className="mt-2 text-center text-[0.6rem] tracking-tight text-content-muted">
-          <kbd className="font-mono">Enter</kbd> send · <kbd className="font-mono">⇧Enter</kbd> newline ·{" "}
-          <kbd className="font-mono">⌘K</kbd> commands
-        </p>
       </div>
     </div>
   );
