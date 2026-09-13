@@ -275,15 +275,20 @@ class ServiceStatus(APIModel):
 
 
 class HealthResponse(APIModel):
+    """Full detail is only populated for authenticated callers — see
+    ``routers/health.py``. An anonymous caller gets ``status``/``version``
+    only, not the service topology, LLM provider/model, or embedding config.
+    """
+
     status: Literal["healthy", "degraded", "unhealthy"]
     version: str
-    env: str
-    services: ServiceStatus
-    llm_provider: str
-    llm_model: str
-    llm_active: bool
-    embedding_provider: str
-    embedding_dim: int
+    env: str | None = None
+    services: ServiceStatus | None = None
+    llm_provider: str | None = None
+    llm_model: str | None = None
+    llm_active: bool | None = None
+    embedding_provider: str | None = None
+    embedding_dim: int | None = None
 
 
 # ------------------------------------------------------------- stream events

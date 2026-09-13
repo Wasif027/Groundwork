@@ -67,8 +67,26 @@ _SEC_V2 = {
 }
 
 
-def test_health(app_client):
+def test_health_anonymous_omits_internals(app_client):
     r = app_client.get("/api/v1/health")
+    assert r.status_code == 200
+    body = r.json()
+    assert "status" in body and "version" in body
+    assert body.get("services") is None
+    assert body.get("llmModel") is None
+
+
+def test_health_authenticated_includes_internals(app_client):
+    reg = app_client.post("/api/v1/auth/register", json={"username": "healthuser", "password": "password123"})
+    assert reg.status_code in (201, 409)
+    token = (
+        reg.json()["token"]
+        if reg.status_code == 201
+        else app_client.post(
+            "/api/v1/auth/login", json={"username": "healthuser", "password": "password123"}
+        ).json()["token"]
+    )
+    r = app_client.get("/api/v1/health", headers={"Authorization": f"Bearer {token}"})
     assert r.status_code == 200
     assert r.json()["services"]["postgres"] == "up"
 
