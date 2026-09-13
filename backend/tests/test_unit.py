@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 
 from app.services.chunking import chunk_text, estimate_tokens
 from app.services.embeddings import embed_text, embed_texts
@@ -309,6 +310,31 @@ def test_normalise_citations_drops_stray_marker():
     out, cites = _normalise_citations("Nothing here really [4].", [], passages, [])
     assert out == "Nothing here really ." or out == "Nothing here really  ."
     assert cites == []
+
+
+def test_normalise_citations_never_claims_a_source_with_no_visible_marker():
+    """A user reported an answer showing '1 source' with no [n] anywhere in
+    the text to click through to — reproducing the exact upstream cause
+    wasn't possible offline, so this locks in the invariant directly: every
+    citation _normalise_citations returns must have its marker present in
+    the returned text, for a spread of shapes an LLM's own citations list
+    could plausibly take."""
+    from app.services.llm import CitationUse
+    from app.services.rag import _normalise_citations
+
+    cases = [
+        ("", [CitationUse(marker=1, quote="q")], [_passage(1, "alpha")]),
+        ("An answer with no bracket at all.", [CitationUse(marker=1, quote="q")], [_passage(1, "alpha")]),
+        (
+            "Two things. [1] Another unrelated sentence.",
+            [CitationUse(marker=1, quote="q"), CitationUse(marker=2, quote="q2")],
+            [_passage(1, "alpha"), _passage(2, "bravo")],
+        ),
+    ]
+    for text, uses, passages in cases:
+        out, cites = _normalise_citations(text, uses, passages, [])
+        present = {int(m) for m in re.findall(r"\[(\d+)\]", out)}
+        assert all(c.marker in present for c in cites), (text, out, cites)
 
 
 def test_confidence_rewards_a_strong_cited_passage():

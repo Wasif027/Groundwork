@@ -301,6 +301,15 @@ def _normalise_citations(
         lambda mo: f"[{remap[int(mo.group(1))]}]" if int(mo.group(1)) in remap else "", text
     ).strip()
 
+    # Safety net: a citation the reader can't click through to is worse than
+    # no citation — never let `citations` claim a source the answer text
+    # doesn't actually reference with a [n] marker, whatever upstream path
+    # produced the mismatch.
+    present = {int(m) for m in _MARKER_RE.findall(text)}
+    missing = [n for n in remap.values() if n not in present]
+    if missing:
+        text = f"{text.rstrip()} " + " ".join(f"[{n}]" for n in missing)
+
     quote_by_marker = {u.marker: u.quote for u in uses}
     cites: list[Citation] = []
     for old in ordered:
