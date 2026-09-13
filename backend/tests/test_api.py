@@ -282,6 +282,11 @@ def test_xlsx_upload_and_analysis(auth):
         assert r["analysis"]["sql"].lower().lstrip().startswith(("select", "with"))
         loss_products = {str(row[0]).lower() for row in r["analysis"]["rows"]}
         assert any("box" in p or "weekend" in p for p in loss_products)
+        # A pure-numbers question has no unrelated passage nearby for the
+        # narration's usual "supporting context" citations, so without a
+        # fallback to the spreadsheet itself this used to show "0 cited".
+        assert r["citations"], "a computed answer should cite the sheet it was computed from"
+        assert any(c["documentId"] for c in r["citations"])
     else:
         assert r["analysis"]["ok"] is False  # graceful without a model provider
 

@@ -183,6 +183,24 @@ def test_offline_overview_does_not_leak_a_raw_table_and_lists_per_document():
     assert "[1]" in synth.answer and "[2]" in synth.answer and "[3]" in synth.answer
 
 
+def test_offline_pinpoint_does_not_leak_a_raw_table_either():
+    """Same bug as the overview test above, but in the default ('pinpoint')
+    branch of _offline() — which had no length cap at all on the selected
+    sentence, so a spreadsheet-preview passage with no '.'/'!'/'?' anywhere
+    stayed as one giant 'sentence' and was pasted into the answer verbatim,
+    with no length limit, both in the prose and in the citation quote."""
+    table_chunk = (
+        "Columns: order_id (text), revenue (number)\nRows: 140\n"
+        "| order_id | revenue |\n| --- | --- |\n"
+        + "\n".join(f"| CS-{5000 + i} | {i * 7} |" for i in range(1, 60))
+    )
+    passages = [ContextPassage(1, "c1", "Orders", None, table_chunk, 0.6)]
+    synth = _offline("summarise the orders sheet", passages)
+    assert "| CS-" not in synth.answer
+    assert len(synth.answer) < 400
+    assert synth.citations and "| CS-" not in synth.citations[0].quote
+
+
 # ------------------------------------------------------------- parsing
 def test_infer_type_and_identifier_sanitiser():
     from app.services.parsing import infer_type, sanitise_identifier

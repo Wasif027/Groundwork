@@ -25,7 +25,7 @@ from app.core.telemetry import tracer
 from app.models.orm import Document, DocumentTable, User
 from app.services import llm
 from app.services.embeddings import embed_text
-from app.services.llm import ContextPassage, Synthesis
+from app.services.llm import CitationUse, ContextPassage, Synthesis
 from app.services.vectorstore import RetrievedChunk, Scope, hybrid_search
 
 logger = get_logger(__name__)
@@ -45,6 +45,7 @@ _MONTH_RE = re.compile(r"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|q[1-4
 @dataclass
 class RegisteredTable:
     sql_name: str
+    document_id: str
     document_title: str
     sheet_name: str
     columns: list[dict]     # {name, sqlName, type}
@@ -143,6 +144,7 @@ def _load_tables(db: Session, doc_ids: list[str]):
         registered.append(
             RegisteredTable(
                 sql_name=name,
+                document_id=dt.document_id,
                 document_title=doc_title,
                 sheet_name=dt.sheet_name,
                 columns=dt.columns_json or [],
@@ -225,6 +227,33 @@ def _supporting_context(db: Session, user: User, question: str, exclude_ids: lis
         return [h for h in hits if h.chunk.document_id not in exclude_ids][:3]
     except Exception as exc:  # pragma: no cover
         logger.warning("analysis_context_failed", error=str(exc))
+        return []
+
+
+def _sheet_source_chunks(db: Session, tables: list[RegisteredTable]) -> list[RetrievedChunk]:
+    """One real chunk per spreadsheet document actually queried, so a computed
+    answer always has something to cite — otherwise a pure-numbers question
+    (no unrelated passage nearby for ``_supporting_context`` to find) shows
+    "0 cited" even though the answer is entirely grounded in that sheet."""
+    from app.models.orm import Chunk
+
+    doc_ids = list(dict.fromkeys(t.document_id for t in tables))  # de-duped, order-preserving
+    if not doc_ids:
+        return []
+    try:
+        rows = db.execute(
+            select(Chunk).where(Chunk.document_id.in_(doc_ids)).order_by(Chunk.document_id, Chunk.chunk_index)
+        ).scalars()
+        seen: set[str] = set()
+        out: list[RetrievedChunk] = []
+        for chunk in rows:
+            if chunk.document_id in seen:
+                continue
+            seen.add(chunk.document_id)
+            out.append(RetrievedChunk(chunk=chunk, rerank_score=1.0))
+        return out
+    except Exception as exc:  # pragma: no cover
+        logger.warning("analysis_sheet_source_failed", error=str(exc))
         return []
 
 
@@ -311,6 +340,19 @@ def run_analysis(
         narrative = llm.narrate_analysis(
             question, sql, cols, result_rows, context_passages=ctx_passages or None
         )
+
+        if not narrative.citations:
+            # A pure numbers question ("which departments are over budget?")
+            # has no nearby unrelated passage for _supporting_context to find,
+            # so the answer would otherwise show "0 cited" despite being
+            # entirely computed from the sheet(s) in tables_used. _assemble_analysis
+            # (rag.py) already splices any cited-but-unreferenced marker into the
+            # answer text, so appending the citation here is enough.
+            for offset, h in enumerate(_sheet_source_chunks(db, tables)):
+                marker = len(context) + offset + 1
+                context.append(h)
+                title = h.chunk.document.title if h.chunk.document else "the spreadsheet"
+                narrative.citations.append(CitationUse(marker=marker, quote=f"Computed from {title}."))
 
         return AnalysisResult(
             ok=True,

@@ -148,6 +148,21 @@ def _prompt(question: str, passages: list[ContextPassage], history: str | None =
 
 
 # --------------------------------------------------------------------- offline
+def _excerpt(text: str, *, limit: int = 220) -> str:
+    """A short, safe-to-display slice of a passage — never a raw table dump.
+
+    Used everywhere `_offline()` needs to show "roughly what this passage
+    says": a spreadsheet-preview chunk (``"Columns: ...\\nRows: N\\n\\n| ... |"``)
+    has no sentence-ending punctuation for `_SENT_RE` to split on, so without
+    special-casing it the "first sentence" is the raw markdown table itself.
+    """
+    text = text.strip()
+    first = text.split("\n", 1)[0] if text.startswith("Columns:") else text
+    if len(first) > limit:
+        first = first[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+    return first
+
+
 def _offline(
     question: str,
     passages: list[ContextPassage],
@@ -165,18 +180,7 @@ def _offline(
         # No model: stitch a short excerpt of each passage into an outline.
         picked: list[CitationUse] = []
         for p in passages[: (12 if mode == "document" else 8)]:
-            text = p.text.strip()
-            if text.startswith("Columns:"):
-                # A spreadsheet-preview chunk — there's no sentence to pull
-                # out, and splitting on '.'/'!'/'?' does nothing inside a
-                # markdown table, so without this the "first sentence" was
-                # the raw table pasted straight into the answer.
-                first = text.split("\n", 1)[0]
-            else:
-                first = next((s.strip() for s in _SENT_RE.split(text) if s.strip()), text[:220])
-            if len(first) > 220:
-                first = first[:220].rsplit(" ", 1)[0].rstrip(",;:") + "…"
-            picked.append(CitationUse(marker=p.marker, quote=first))
+            picked.append(CitationUse(marker=p.marker, quote=_excerpt(p.text)))
         if mode == "document":
             body = " ".join(f"{c.quote} [{c.marker}]" for c in picked)
             answer = f"{prefix}Outline of {passages[0].title}: {body}"
@@ -209,12 +213,20 @@ def _offline(
     picked: list[tuple[int, str]] = []
     used_markers: list[CitationUse] = []
     for p in passages[:4]:
-        best_sent, best_overlap = "", 0
-        for sent in _SENT_RE.split(p.text):
-            overlap = len(q_terms & set(_terms(sent)))
-            if overlap > best_overlap:
-                best_sent, best_overlap = sent.strip(), overlap
-        sentence = best_sent or p.text[:240].strip()
+        text = p.text.strip()
+        if text.startswith("Columns:"):
+            # Same spreadsheet-preview case as _excerpt() above — there's no
+            # real sentence in a table for _SENT_RE to find, so the "best
+            # sentence" below would otherwise be the entire raw table.
+            sentence = _excerpt(text)
+            best_overlap = 1  # has term overlap in spirit: it's the passage picked to answer with
+        else:
+            best_sent, best_overlap = "", 0
+            for sent in _SENT_RE.split(text):
+                overlap = len(q_terms & set(_terms(sent)))
+                if overlap > best_overlap:
+                    best_sent, best_overlap = sent.strip(), overlap
+            sentence = _excerpt(best_sent or text)
         picked.append((p.marker, sentence))
         used_markers.append(CitationUse(marker=p.marker, quote=sentence))
         if len(picked) >= 2 and best_overlap == 0:
