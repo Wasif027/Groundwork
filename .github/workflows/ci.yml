@@ -79,7 +79,11 @@ jobs:
             if curl -fsS http://localhost:8000/health >/dev/null; then echo "backend up"; break; fi
             sleep 3
           done
-          curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"postgres":"up"'
+          # /health only returns the full dependency breakdown (postgres/redis
+          # status, LLM provider/model) to an authenticated caller now — an
+          # anonymous probe just gets status/version, which is all a smoke
+          # test needs to confirm the stack actually came up.
+          curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"healthy"'
           curl -fsS http://localhost:3000 >/dev/null && echo "frontend up"
       - name: Dump logs on failure
         if: failure()
