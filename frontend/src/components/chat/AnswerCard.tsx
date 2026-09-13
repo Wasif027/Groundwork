@@ -8,6 +8,7 @@ import { toast } from "@/store/useToast";
 import { useAppStore } from "@/store/useAppStore";
 import { ConfidenceBadge } from "@/components/ui/ConfidenceGauge";
 import { ArrowElbowDownRight, ChartBar, Check, Copy, GitCompare, Sparkle, Spinner, Warning } from "@/components/ui/icons";
+import { AnalysisView } from "./AnalysisView";
 import { AnswerText } from "./AnswerText";
 
 export function AnswerCard({ message }: { message: ChatMessage }) {
@@ -87,6 +88,10 @@ export function AnswerCard({ message }: { message: ChatMessage }) {
           onCite={onCite}
           streaming={message.pending}
         />
+      )}
+
+      {answer?.retrievalMode === "analysis" && answer.analysis && !message.pending && (
+        <AnalysisView analysis={answer.analysis} />
       )}
 
       {answer && !message.pending && (
